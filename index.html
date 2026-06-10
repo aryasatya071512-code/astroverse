@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#080b22" />
+  <meta name="description" content="AstroVerse: website astronomi interaktif tentang tata surya, planet, planet katai, orbit, kuis, dan perbandingan planet." />
+  <title>AstroVerse — Tata Surya Interaktif</title>
+  <style>
+    :root{
+      --bg:#060817; --bg2:#0c1837; --card:rgba(255,255,255,.085); --card2:rgba(255,255,255,.13);
+      --txt:#f7fbff; --muted:#b9c5dc; --line:rgba(255,255,255,.18); --accent:#7df9ff;
+      --accent2:#ffcc70; --pink:#ff5fc7; --green:#8effa6; --shadow:0 18px 60px rgba(0,0,0,.35);
+      --radius:28px; --safe-top: env(safe-area-inset-top, 0px);
+    }
+    [data-theme="nebula"]{ --bg:#12091f; --bg2:#281046; --card:rgba(255,255,255,.1); --card2:rgba(255,255,255,.16); --accent:#ff75d8; --accent2:#74fbff; --pink:#ffe66f; }
+    [data-theme="solar"]{ --bg:#0e0b07; --bg2:#2b1805; --card:rgba(255,247,230,.11); --card2:rgba(255,247,230,.18); --accent:#ffd36a; --accent2:#ff884d; --pink:#75f1ff; }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{ margin:0; min-height:100vh; font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color:var(--txt); background:
+      radial-gradient(circle at 15% 12%, rgba(125,249,255,.22), transparent 24rem),
+      radial-gradient(circle at 85% 8%, rgba(255,95,199,.16), transparent 24rem),
+      radial-gradient(circle at 50% 100%, rgba(255,204,112,.12), transparent 30rem),
+      linear-gradient(145deg, var(--bg), var(--bg2) 60%, #06162a); overflow-x:hidden; }
+    body::before{content:""; position:fixed; inset:0; z-index:-5; background-image:
+      radial-gradient(#fff 0 1px, transparent 1.35px), radial-gradient(#fff 0 1px, transparent 1.4px), radial-gradient(var(--accent) 0 1px, transparent 1.45px);
+      background-size: 72px 72px, 113px 113px, 190px 190px; background-position: 4px 7px, 30px 53px, 98px 21px; opacity:.38; animation: driftStars 80s linear infinite; }
+    body::after{content:""; position:fixed; inset:0; z-index:-4; pointer-events:none; background:linear-gradient(120deg, transparent 0 42%, rgba(255,255,255,.08) 43%, transparent 46% 100%); transform:translateX(-80%) translateY(-70%); animation: comet 9s ease-in-out infinite; opacity:.5}
+    @keyframes driftStars{from{background-position:4px 7px,30px 53px,98px 21px}to{background-position:800px 600px, -600px 700px, 900px -700px}}
+    @keyframes comet{0%,55%,100%{transform:translateX(-90%) translateY(-70%);opacity:0} 60%{opacity:.7} 72%{transform:translateX(90%) translateY(40%);opacity:0}}
+    a{color:inherit} button,input,select{font:inherit} button{cursor:pointer}
+    .wrap{width:min(1180px, calc(100% - 32px)); margin-inline:auto}
+    .topbar{position:sticky; top:0; z-index:20; backdrop-filter: blur(16px); background:rgba(6,8,23,.74); border-bottom:1px solid var(--line); padding-top:var(--safe-top)}
+    .nav{height:76px; display:flex; align-items:center; justify-content:space-between; gap:14px}
+    .brand{display:flex; align-items:center; gap:12px; font-weight:900; letter-spacing:.2px; font-size:clamp(1.05rem, 3vw, 1.45rem)}
+    .sun-logo{width:46px; aspect-ratio:1; border-radius:50%; background:radial-gradient(circle at 34% 35%, #fff 0 13%, #ffe9a2 14% 26%, #ffbd4a 27% 53%, #f27b17 54% 100%); box-shadow:0 0 26px #ffbd4a, inset -9px -7px 12px rgba(94,42,0,.36); animation:pulse 2.8s ease-in-out infinite}
+    @keyframes pulse{50%{transform:scale(1.08); box-shadow:0 0 42px #ffbd4a}}
+    .navlinks{display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end}
+    .pill,.btn{border:1px solid var(--line); color:var(--txt); border-radius:999px; background:rgba(255,255,255,.09); padding:10px 14px; text-decoration:none; transition:.2s transform,.2s background,.2s border-color; display:inline-flex; align-items:center; gap:8px; box-shadow:0 5px 16px rgba(0,0,0,.14)}
+    .pill:hover,.btn:hover{transform:translateY(-2px); background:var(--card2); border-color:rgba(255,255,255,.34)}
+    .btn.primary{background:linear-gradient(135deg, var(--accent), var(--pink)); color:#07101b; border:0; font-weight:900}
+    .btn.ghost{background:rgba(255,255,255,.08)}
+    .hero{min-height:calc(100svh - 76px); display:grid; grid-template-columns: minmax(0,1.02fr) minmax(320px,.98fr); gap:28px; align-items:center; padding:44px 0 36px; position:relative}
+    .hero-copy{position:relative; z-index:2}
+    .eyebrow{display:inline-flex; gap:10px; align-items:center; padding:10px 13px; border:1px solid rgba(125,249,255,.26); border-radius:999px; color:var(--accent); background:rgba(125,249,255,.08); font-weight:800; margin-bottom:18px}
+    .blink{width:9px;height:9px;border-radius:50%; background:var(--green); box-shadow:0 0 16px var(--green); animation: blink 1.25s steps(2) infinite}
+    @keyframes blink{50%{opacity:.15}}
+    h1{font-size:clamp(2.6rem, 9vw, 6rem); line-height:.92; letter-spacing:-.07em; margin:0 0 18px; text-wrap:balance}
+    .gradient-text{background:linear-gradient(100deg,#fff 0%, var(--accent) 38%, var(--accent2) 72%, var(--pink) 100%); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(0 0 30px rgba(125,249,255,.2))}
+    .lead{font-size:clamp(1rem, 2.8vw, 1.24rem); color:var(--muted); line-height:1.75; margin:0 0 22px; max-width:65ch}
+    .hero-actions{display:flex; flex-wrap:wrap; gap:12px; margin:22px 0}
+    .stats{display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:10px; margin-top:26px}
+    .stat{background:var(--card); border:1px solid var(--line); border-radius:22px; padding:14px; box-shadow:var(--shadow); min-height:92px; position:relative; overflow:hidden}
+    .stat::after{content:""; position:absolute; width:90px; height:90px; right:-35px; top:-35px; border-radius:50%; background:radial-gradient(circle, var(--accent), transparent 60%); opacity:.18}
+    .stat b{display:block; font-size:clamp(1.35rem, 5vw, 2.2rem); line-height:1}
+    .stat span{color:var(--muted); font-size:.9rem}
+    .solar-stage{position:relative; min-height:560px; border:1px solid var(--line); border-radius:40px; background:linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.035)); box-shadow:var(--shadow); overflow:hidden; isolation:isolate}
+    .solar-stage::before{content:""; position:absolute; inset:0; background:radial-gradient(circle at 52% 50%, rgba(255,205,91,.22), transparent 16%), radial-gradient(circle at 70% 20%, rgba(125,249,255,.12), transparent 30%), linear-gradient(transparent 0 0); opacity:.95}
+    .orbit-system{position:absolute; inset:22px; display:grid; place-items:center; transform-style:preserve-3d; perspective:900px}
+    .sun-core{position:absolute; width:94px; aspect-ratio:1; border-radius:50%; background:radial-gradient(circle at 34% 33%,#fff 0 13%,#fff2b4 14% 26%,#ffbd37 27% 55%,#e36c16 56% 100%); box-shadow:0 0 60px #ffb82e, 0 0 120px rgba(255,187,46,.42); z-index:7; display:grid; place-items:center; font-size:2rem; animation:pulse 3s infinite ease-in-out}
+    .orbit{--size:130px; --speed:13s; --tilt:64deg; width:var(--size); aspect-ratio:1; border:1px solid rgba(255,255,255,.17); border-radius:50%; position:absolute; transform:rotateX(var(--tilt)); animation:spin var(--speed) linear infinite; will-change:transform}
+    .orbit.paused{animation-play-state:paused!important}
+    @keyframes spin{to{transform:rotateX(var(--tilt)) rotateZ(360deg)}}
+    .orbiter{--p:12px; position:absolute; left:50%; top:calc(var(--p) * -0.5); width:var(--p); height:var(--p); margin-left:calc(var(--p) * -.5); border-radius:50%; background:var(--c); box-shadow:0 0 18px var(--c); transform:rotateX(calc(var(--tilt) * -1)); border:1px solid rgba(255,255,255,.35)}
+    .orbiter::after{content:attr(data-short); position:absolute; left:50%; top:calc(100% + 8px); transform:translateX(-50%); font-size:10px; font-weight:900; color:#fff; opacity:.8; text-shadow:0 1px 8px #000}
+    .rings{box-shadow:0 0 0 4px transparent}.rings::before{content:""; position:absolute; inset:-5px -9px; border:2px solid rgba(255,222,148,.85); border-radius:50%; transform:rotate(-25deg)}
+    .float-card{position:absolute; left:22px; right:22px; bottom:22px; z-index:8; background:rgba(2,5,20,.72); border:1px solid var(--line); backdrop-filter: blur(14px); border-radius:26px; padding:18px; display:grid; grid-template-columns:1fr auto; gap:12px; align-items:end}
+    .float-card h2{margin:0 0 6px; font-size:1.4rem}.float-card p{margin:0; color:var(--muted); line-height:1.55}.float-card .mini{color:var(--accent); font-weight:900}
+    .scroll-cue{position:absolute; left:50%; bottom:10px; transform:translateX(-50%); color:var(--muted); font-size:.85rem; opacity:.8}
+    section{padding:56px 0}.section-head{display:flex; align-items:end; justify-content:space-between; gap:16px; margin-bottom:22px}.section-head h2{font-size:clamp(1.8rem,5vw,3.2rem); margin:0; letter-spacing:-.04em}.section-head p{color:var(--muted); line-height:1.65; max-width:62ch; margin:6px 0 0}
+    .panel{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px; position:relative; overflow:hidden}.panel::before{content:""; position:absolute; inset:auto -20% -50% auto; width:260px; aspect-ratio:1; background:radial-gradient(circle,var(--accent),transparent 65%); opacity:.09; pointer-events:none}
+    .controls{display:grid; grid-template-columns:1.1fr .8fr .8fr auto auto; gap:12px; align-items:center; margin-bottom:18px}.field{background:rgba(255,255,255,.08); border:1px solid var(--line); border-radius:18px; padding:10px 12px; color:var(--txt); outline:0; width:100%}.field:focus{border-color:var(--accent); box-shadow:0 0 0 4px rgba(125,249,255,.12)}select.field option{background:#101a35;color:white}
+    .interactive-grid{display:grid; grid-template-columns:1.1fr .9fr; gap:18px; align-items:stretch}.mini-orbit{min-height:520px; border-radius:26px; border:1px solid var(--line); background:radial-gradient(circle at center, rgba(255,200,76,.14), rgba(255,255,255,.03) 18%, transparent 68%); position:relative; overflow:hidden}.mini-orbit .sun-core{width:72px}.mini-orbit .orbit{--tilt:0deg}.mini-orbit .orbiter{cursor:pointer}.mini-orbit .orbiter:hover{scale:1.5; z-index:12}
+    .detail{display:flex; flex-direction:column; gap:14px}.detail-planet{display:grid; grid-template-columns:auto 1fr; gap:16px; align-items:center}.big-planet{width:100px; aspect-ratio:1; border-radius:50%; background:var(--planet-gradient, radial-gradient(circle,#fff,#888)); box-shadow:0 0 50px var(--planet-glow, rgba(255,255,255,.35)); position:relative; flex:none}.big-planet.ringed::after{content:""; position:absolute; inset:39px -22px; border:8px solid rgba(255,222,148,.72); border-left-color:rgba(255,222,148,.32); border-right-color:rgba(255,222,148,.32); border-radius:50%; transform:rotate(-20deg)}
+    .detail h3{font-size:2.1rem; margin:0}.tag{display:inline-flex; align-items:center; gap:6px; width:max-content; max-width:100%; border:1px solid var(--line); background:rgba(255,255,255,.08); border-radius:999px; padding:7px 10px; color:var(--muted); font-size:.88rem}.detail p{line-height:1.7; color:var(--muted); margin:0}.factgrid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px}.factbox{border:1px solid var(--line); border-radius:18px; background:rgba(255,255,255,.065); padding:12px}.factbox small{display:block; color:var(--muted); margin-bottom:5px}.factbox b{font-size:1.05rem}.progress{height:10px;background:rgba(255,255,255,.1);border-radius:999px;overflow:hidden}.bar{height:100%; width:20%; background:linear-gradient(90deg,var(--accent),var(--pink)); border-radius:999px; transition:width .5s ease}
+    .cards{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px}.body-card{background:var(--card); border:1px solid var(--line); border-radius:26px; padding:18px; min-height:265px; box-shadow:var(--shadow); position:relative; overflow:hidden; transform-style:preserve-3d; transition:.25s transform,.25s border-color,.25s background; display:flex; flex-direction:column; gap:12px}.body-card:hover{transform:translateY(-8px) rotateX(2deg) rotateY(-2deg); border-color:rgba(255,255,255,.35); background:var(--card2)}.body-card.hide{display:none}.body-card::after{content:""; position:absolute; width:160px; height:160px; border-radius:50%; background:var(--planet-gradient); right:-58px; top:-58px; opacity:.55; filter:blur(.2px)}.card-head{display:flex; align-items:center; gap:11px; position:relative; z-index:1}.planet-dot{width:46px; aspect-ratio:1; border-radius:50%; background:var(--planet-gradient); box-shadow:0 0 25px var(--planet-glow,rgba(255,255,255,.28)); flex:none}.planet-dot.ringed{position:relative}.planet-dot.ringed::before{content:""; position:absolute; inset:18px -10px; border:4px solid rgba(255,222,148,.78); border-radius:50%; transform:rotate(-22deg)}.body-card h3{margin:0; font-size:1.35rem}.body-card p{color:var(--muted); line-height:1.6; margin:0; position:relative; z-index:1}.chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:auto; position:relative; z-index:1}.chip{font-size:.78rem; color:#07101b; font-weight:900; border-radius:999px; padding:7px 9px; background:linear-gradient(135deg,var(--accent),var(--accent2))}
+    .compare{display:grid; grid-template-columns:1fr .85fr; gap:18px}.chart{display:flex; gap:10px; align-items:end; min-height:360px; border-radius:24px; border:1px solid var(--line); padding:14px; background:rgba(255,255,255,.05); overflow-x:auto}.bar-planet{min-width:58px; display:flex; flex-direction:column; align-items:center; gap:8px}.bar-planet .vbar{width:28px; min-height:12px; height:calc(var(--h) * 1px); background:linear-gradient(180deg,var(--accent),var(--pink)); border-radius:999px 999px 8px 8px; box-shadow:0 0 18px rgba(125,249,255,.25)}.bar-planet small{writing-mode:vertical-rl; transform:rotate(180deg); color:var(--muted); font-size:.76rem}.calc{display:grid; gap:12px}.weight-result{font-size:clamp(1.6rem,6vw,3rem); font-weight:950; letter-spacing:-.05em}.quiz{display:grid; grid-template-columns:1fr .9fr; gap:18px}.question{font-size:1.25rem;font-weight:900;margin-bottom:12px}.answers{display:grid;gap:10px}.answer{border:1px solid var(--line); background:rgba(255,255,255,.07); color:var(--txt); border-radius:16px; padding:12px; text-align:left}.answer.correct{border-color:rgba(142,255,166,.8); background:rgba(142,255,166,.15)}.answer.wrong{border-color:rgba(255,95,199,.8); background:rgba(255,95,199,.15)}.quiz-score{font-size:4rem; font-weight:950; letter-spacing:-.08em; margin:0}.timeline{display:grid; grid-template-columns:repeat(4,1fr); gap:14px}.step{border:1px solid var(--line); border-radius:22px; background:rgba(255,255,255,.07); padding:16px; position:relative; overflow:hidden}.step b{display:block;font-size:1.1rem;margin-bottom:8px}.step span{color:var(--muted);line-height:1.55}.step::before{content:attr(data-no); position:absolute; right:12px; top:4px; font-size:4rem; font-weight:1000; opacity:.08}
+    .sources{color:var(--muted); line-height:1.7}.sources a{color:var(--accent); text-decoration:none}.sources a:hover{text-decoration:underline}.footer{padding:34px 0 60px; color:var(--muted); border-top:1px solid var(--line); background:rgba(0,0,0,.14)}
+    .toast{position:fixed; z-index:50; left:50%; bottom:18px; transform:translateX(-50%) translateY(80px); opacity:0; background:rgba(2,5,20,.88); border:1px solid var(--line); border-radius:999px; padding:12px 18px; box-shadow:var(--shadow); transition:.35s ease}.toast.show{transform:translateX(-50%) translateY(0); opacity:1}
+    .mobile-only{display:none}.no-js{background:rgba(255,212,106,.16); border:1px solid rgba(255,212,106,.38); border-radius:18px; padding:12px; margin:12px 0; color:#fff4d1}
+    @media (max-width: 980px){.nav{height:auto; padding:12px 0; align-items:flex-start}.navlinks .pill:not(.always){display:none}.hero{grid-template-columns:1fr; min-height:auto; padding-top:28px}.solar-stage{min-height:480px}.stats{grid-template-columns:repeat(2,1fr)}.controls{grid-template-columns:1fr 1fr}.controls .wide{grid-column:1/-1}.interactive-grid,.compare,.quiz{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.timeline{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width: 560px){.wrap{width:min(100% - 20px,1180px)}.brand{font-size:1.05rem}.sun-logo{width:42px}.topbar{position:sticky}.navlinks{gap:6px}.pill,.btn{padding:9px 11px}.hero{padding:20px 0 28px}.stats{grid-template-columns:repeat(2,1fr)}.solar-stage{min-height:420px; border-radius:28px}.orbit-system{inset:8px}.sun-core{width:66px}.float-card{left:10px;right:10px;bottom:10px;grid-template-columns:1fr;padding:14px;border-radius:20px}.float-card h2{font-size:1.15rem}.float-card p{font-size:.9rem}.section-head{display:block}.controls{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.factgrid{grid-template-columns:1fr}.mini-orbit{min-height:420px}.detail-planet{grid-template-columns:1fr}.big-planet{width:86px}.timeline{grid-template-columns:1fr}.chart{min-height:300px}.bar-planet{min-width:48px}.bar-planet small{font-size:.7rem}.mobile-only{display:inline}.hero-actions .btn{flex:1; justify-content:center}.eyebrow{font-size:.85rem}.stat{min-height:86px;padding:12px}.stat b{font-size:1.65rem}}
+    @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.001ms!important; animation-iteration-count:1!important; scroll-behavior:auto!important; transition:none!important}.orbit{animation:none!important}}
+  </style>
+</head>
+<body data-theme="cosmic">
+  <header class="topbar">
+    <div class="wrap nav">
+      <a class="brand" href="#top" aria-label="Kembali ke awal"><span class="sun-logo" aria-hidden="true"></span><span>AstroVerse</span></a>
+      <nav class="navlinks" aria-label="Navigasi utama">
+        <a class="pill" href="#simulator">Simulator</a>
+        <a class="pill" href="#katalog">Katalog</a>
+        <a class="pill" href="#bandingkan">Bandingkan</a>
+        <a class="pill" href="#kuis">Kuis</a>
+        <button class="pill always" id="themeBtn" type="button">Mode Nebula</button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="wrap hero" aria-label="Pembuka AstroVerse">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="blink"></span> Website astronomi interaktif • 1 file HTML</div>
+        <h1>Jelajahi <span class="gradient-text">Tata Surya</span> seperti peta hidup.</h1>
+        <p class="lead">Klik planet di orbit, ubah kecepatan animasi, cari fakta, bandingkan ukuran, hitung beratmu di planet lain, dan mainkan kuis singkat. Semua berjalan langsung dari <b>index.html</b> tanpa library luar.</p>
+        <div class="hero-actions">
+          <a class="btn primary" href="#simulator">Mulai Jelajah</a>
+          <a class="btn ghost" href="#katalog">Lihat Planet</a>
+        </div>
+        <div class="stats" aria-label="Statistik tata surya">
+          <div class="stat"><b data-count="8">8</b><span>planet resmi</span></div>
+          <div class="stat"><b data-count="5">5</b><span>planet katai resmi</span></div>
+          <div class="stat"><b data-count="290">290+</b><span>bulan planet & objek kecil</span></div>
+          <div class="stat"><b>4,6</b><span>miliar tahun umur tata surya</span></div>
+        </div>
+      </div>
+
+      <div class="solar-stage" aria-label="Animasi tata surya">
+        <div class="orbit-system" id="heroOrbit" aria-hidden="true">
+          <div class="sun-core">☀️</div>
+          <div class="orbit" style="--size:130px;--speed:8s"><i class="orbiter" data-short="Mer" style="--p:9px;--c:#b9b6aa"></i></div>
+          <div class="orbit" style="--size:180px;--speed:12s"><i class="orbiter" data-short="Ven" style="--p:13px;--c:#eec47d"></i></div>
+          <div class="orbit" style="--size:235px;--speed:17s"><i class="orbiter" data-short="Bumi" style="--p:14px;--c:#49a3ff"></i></div>
+          <div class="orbit" style="--size:290px;--speed:22s"><i class="orbiter" data-short="Mars" style="--p:11px;--c:#e36d45"></i></div>
+          <div class="orbit" style="--size:355px;--speed:34s"><i class="orbiter" data-short="Jup" style="--p:28px;--c:#d9a56e"></i></div>
+          <div class="orbit" style="--size:430px;--speed:45s"><i class="orbiter rings" data-short="Sat" style="--p:24px;--c:#d6be80"></i></div>
+          <div class="orbit" style="--size:500px;--speed:58s"><i class="orbiter" data-short="Ura" style="--p:19px;--c:#8be8ed"></i></div>
+          <div class="orbit" style="--size:565px;--speed:72s"><i class="orbiter" data-short="Nep" style="--p:19px;--c:#4775ff"></i></div>
+        </div>
+        <div class="float-card">
+          <div>
+            <span class="mini">Simulasi mini</span>
+            <h2>Orbit tidak berskala, tapi interaktif.</h2>
+            <p>Untuk membuatnya terlihat jelas di layar HP, jarak dan ukuran planet disederhanakan. Data fakta ada di kartu dan panel detail.</p>
+          </div>
+          <a class="btn primary" href="#simulator">Klik planet</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap" id="simulator">
+      <div class="section-head">
+        <div>
+          <h2>Simulator orbit interaktif</h2>
+          <p>Pilih planet atau klik titik planet di orbit. Gunakan slider untuk mempercepat atau memperlambat animasi.</p>
+        </div>
+        <button class="btn ghost" type="button" id="randomBtn">Pilih acak ✨</button>
+      </div>
+      <div class="panel">
+        <div class="controls">
+          <label class="wide"><span class="tag">Cari benda langit</span><input id="searchInput" class="field" type="search" placeholder="Contoh: Mars, cincin, raksasa es..." autocomplete="off"></label>
+          <label><span class="tag">Kategori</span><select id="filterSelect" class="field"><option value="all">Semua</option><option value="planet">Planet</option><option value="dwarf">Planet katai</option><option value="star">Bintang</option></select></label>
+          <label><span class="tag">Urutkan</span><select id="sortSelect" class="field"><option value="distance">Jarak dari Matahari</option><option value="diameter">Diameter terbesar</option><option value="name">Nama A-Z</option></select></label>
+          <button class="btn" type="button" id="pauseBtn">Jeda orbit</button>
+          <button class="btn" type="button" id="soundBtn" aria-pressed="false">Suara klik</button>
+        </div>
+        <div class="controls" style="grid-template-columns:1fr auto; margin-top:-6px">
+          <label><span class="tag">Kecepatan orbit: <b id="speedLabel">1.0x</b></span><input id="speedRange" class="field" type="range" min="0.25" max="3" step="0.25" value="1"></label>
+          <select id="focusSelect" class="field" aria-label="Pilih planet fokus"></select>
+        </div>
+        <div class="interactive-grid">
+          <div class="mini-orbit" id="miniOrbit" aria-label="Peta orbit yang dapat diklik">
+            <div class="orbit-system" id="interactiveOrbit">
+              <div class="sun-core">☀️</div>
+            </div>
+          </div>
+          <aside class="detail" id="detailPanel" aria-live="polite">
+            <div class="detail-planet">
+              <div class="big-planet" id="detailVisual" style="--planet-gradient:radial-gradient(circle at 32% 28%,#fff7bf,#ffbd37 50%,#df6c10);--planet-glow:#ffbd37"></div>
+              <div>
+                <span class="tag" id="detailType">Bintang pusat</span>
+                <h3 id="detailName">Matahari</h3>
+              </div>
+            </div>
+            <p id="detailDesc">Matahari adalah bintang di pusat tata surya. Energinya membuat planet-planet tetap hangat dan gravitasinya mengikat seluruh sistem.</p>
+            <div class="factgrid">
+              <div class="factbox"><small>Diameter</small><b id="detailDiameter">1.392.700 km</b></div>
+              <div class="factbox"><small>Jarak rata-rata</small><b id="detailDistance">0 km</b></div>
+              <div class="factbox"><small>Rotasi / hari</small><b id="detailDay">± 27 hari Bumi</b></div>
+              <div class="factbox"><small>Revolusi / tahun</small><b id="detailYear">—</b></div>
+            </div>
+            <div class="factbox">
+              <small>Skala diameter dibanding Jupiter</small>
+              <div class="progress"><div class="bar" id="detailBar" style="width:100%"></div></div>
+            </div>
+            <div class="factbox"><small>Fakta cepat</small><b id="detailFact">Cahaya Matahari butuh sekitar 8 menit 20 detik untuk sampai ke Bumi.</b></div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap" id="katalog">
+      <div class="section-head">
+        <div>
+          <h2>Katalog planet & planet katai</h2>
+          <p>Kartu di bawah tetap tampil walaupun JavaScript gagal, jadi halaman tidak akan kosong. Gunakan kotak pencarian di atas untuk menyaring kartu.</p>
+        </div>
+      </div>
+      <div class="cards" id="cardGrid">
+        <article class="body-card" tabindex="0" data-name="Matahari" data-category="star" data-distance="0" data-diameter="1392700" style="--planet-gradient:radial-gradient(circle at 32% 28%,#fff7bf,#ffbd37 50%,#df6c10);--planet-glow:#ffbd37">
+          <div class="card-head"><span class="planet-dot"></span><div><span class="tag">Bintang</span><h3>Matahari</h3></div></div>
+          <p>Pusat tata surya dan sumber energi utama. Gravitasinya menjaga planet, asteroid, komet, dan planet katai tetap mengorbit.</p>
+          <div class="chips"><span class="chip">Diameter 1,39 juta km</span><span class="chip">Plasma panas</span></div>
+        </article>
+        <article class="body-card" tabindex="0" data-name="Merkurius" data-category="planet" data-distance="57.9" data-diameter="4879" style="--planet-gradient:radial-gradient(circle at 34% 30%,#eee,#8f8b82 68%,#4d4c4a);--planet-glow:#b9b6aa">
+          <div class="card-head"><span class="planet-dot"></span><div><span class="tag">Planet batuan</span><h3>Merkurius</h3></div></div>
+          <p>Planet terkecil dan paling dekat dengan Matahari. Suhunya ekstrem karena atmosfernya sangat tipis.</p>
+          <div class="chips"><span class="chip">57,9 juta km</span><span class="chip">88 hari</span><span class="chip">0 bulan</span></div>
+        </article>
+        <article class="body-card" tabindex="0" data-name="Venus" data-category="planet" data-distance="108.2" data-diameter="12104" style="--planet-gradient:radial-gradient(circle at 30% 30%,#fff3bf,#d89543 68%,#7a4f22);--planet-glow:#eec47d">
+          <div class="card-head"><span class="planet-dot"></span><div><span class="tag">Planet batuan</span><h3>Venus</h3></div></div>
+          <p>Planet terpanas karena efek rumah kaca kuat. Berotasi sangat lambat dan berlawanan arah banyak planet lain.</p>
+          <div class="chips"><span class="chip">108,2 juta km</span><span class="chip">225 hari</span><span class="chip">0 bulan</span></div>
+        </article>
+        <article class="body-card" tabindex="0" data-name="Bumi" data-category="planet" data-distance="149.6" data-diameter="12742" style="--planet-gradient:radial-gradient(circle at 25% 22%,#eaf7ff,#2f91ff 45%,#1d8f61 58%,#0d2a64);--planet-glow:#49a3ff">
+          <div class="card-head"><span class="planet-dot"></span><div><span class="tag">Planet batuan</span><h3>Bumi</h3></div></div>
+          <p>Satu-satunya planet yang diketahui memiliki kehidupan. Air cair, atmosfer, dan medan magnet membantu menjaga lingkungan stabil.</p>
+          <div class="chips"><span class="chip">149,6 juta km</span><span class="chip">365 hari</span><span class="chip">1 bulan</span></div>
+        </article>
+        <article class="body-card" tabindex="0" data-name="Mars" data-category="planet" data-distance="227.9" data-diameter="6779" style="--planet-gradient:radial-gradient(circle at 30% 25%,#ffd0a8,#db6742 58%,#74321f);--planet-glow:#e36d45">
+          <div class="card-head"><span class="planet-dot"></span><div><span class="tag">Planet batuan</span><h3>Mars</h3></div></div>
+          <p>Dikenal sebagai Planet Merah karena oksida besi di permukaannya. Memiliki gunung Olympus Mons dan dua bulan kecil.</p>
+          <div class="chips"><span class="chip">227,9 juta km</span><span class="chip">687 hari</span><span class="chip">Phobos & Deimos</span></div>
+        </article>
+        <article class="body-card" tabindex="0" data-name="Jupiter" data-category="planet" data-distance="778.6" data-diameter="139820" style="--planet-gradient:linear-gradient(160deg,#f1d6a5,#b67b48 28%,#f6e0b9 38%,#9b5a3a 49%,#e9c792 61%,#7a442e);--planet-glow:#d9a56e">
+          <div class="card-head"><span class="planet-dot"></span><div><span class="tag">Raksasa gas</span><h3>Jupiter</h3></div></div>
+          <p>Planet terbesar. Memiliki Bintik Merah Besar, badai raksasa yang telah diamati selama berabad-abad.</p>
+          <div class="chips"><span class="chip">778,6 juta km</span><span class="chip">11,86 tahun</span><span class="chip">101 bulan*</span></div>
+        </article>
+        <article class="body-card" tabindex="0" data-name="Saturnus" data-category="planet" data-distance="1433.5" data-diameter="116460" style="--planet-gradient:linear-gradient(160deg,#fff0bd,#caa45c 35%,#f1d98d 58%,#8c6f38);--planet-glow:#d6be80">
+          <div class="card-head"><span class="planet-dot ringed"></span><div><span class="tag">Raksasa gas</span><h3>Saturnus</h3></div></div>
+          <p>Terkenal dengan sistem cincin paling spektakuler. Titan dan Enceladus menjadi target penting dalam pencarian lingkungan layak huni.</p>
+          <div class="chips"><span class="chip">1,43 miliar km</span><span class="chip">29,45 tahun</span><span class="chip">274 bulan*</span></div>
+        </article>
+        <article class="body-card" tabindex="0" data-name="Uranus" data-category="planet" data-distance="2872.5" data-diameter="50724" style="--planet-gradient:radial-gradient(circle at 30% 25%,#e8ffff,#84e5e9 62%,#2a8494);--planet-glow:#8be8ed">
+          <div class="card-head"><span class="planet-dot"></span><div><span class="tag">Raksasa es</span><h3>Uranus</h3></div></div>
+          <p>Poros rotasinya sangat miring, seolah menggelinding mengelilingi Matahari. Atmosfernya mengandung metana.</p>
+          <div class="chips"><span class="chip">2,87 miliar km</span><span class="chip">84 tahun</span><span class="chip">bulan terus diteliti</span></div>
+        </article>
+        <article class="body-card" tabindex="0" data-name="Neptunus" data-category="planet" data-distance="4495.1" data-diameter="49244" style="--planet-gradient:radial-gradient(circle at 30% 25%,#a9c4ff,#4266ed 58%,#17268a);--planet-glow:#4775ff">
+          <div class="card-head"><span class="planet-dot"></span><div><span class="tag">Raksasa es</span><h3>Neptunus</h3></div></div>
+          <p>Planet terjauh dari Matahari. Anginnya sangat cepat dan Triton menjadi bulan terbesar serta unik.</p>
+          <div class="chips"><span class="chip">4,50 miliar km</span><span class="chip">164,8 tahun</span><span class="chip">16 bulan</span></div>
+        </article>
+        <article class="body-card" tabindex="0" data-name="Ceres" data-category="dwarf" data-distance="413.7" data-diameter="940" style="--planet-gradient:radial-gradient(circle at 35% 30%,#f0eadf,#8f877d 63%,#4e4a48);--planet-glow:#d8d0c6">
+          <div class="card-head"><span class="planet-dot"></span><div><span class="tag">Planet katai</span><h3>Ceres</h3></div></div>
+          <p>Objek terbesar di sabuk asteroid antara Mars dan Jupiter. Permukaannya memiliki area terang yang kaya garam.</p>
+          <div class="chips"><span class="chip">Sabuk asteroid</span><span class="chip">940 km</span></div>
+        </article>
+        <article class="body-card" tabindex="0" data-name="Pluto" data-category="dwarf" data-distance="5906.4" data-diameter="2377" style="--planet-gradient:radial-gradient(circle at 30% 25%,#fff0d7,#b98a67 55%,#583e34);--planet-glow:#caa27f">
+          <div class="card-head"><span class="planet-dot"></span><div><span class="tag">Planet katai</span><h3>Pluto</h3></div></div>
+          <p>Dunia es di Sabuk Kuiper dengan wilayah berbentuk hati bernama Tombaugh Regio. Bulan terbesarnya adalah Charon.</p>
+          <div class="chips"><span class="chip">Sabuk Kuiper</span><span class="chip">248 tahun</span></div>
+        </article>
+        <article class="body-card" tabindex="0" data-name="Haumea" data-category="dwarf" data-distance="6452" data-diameter="1632" style="--planet-gradient:radial-gradient(ellipse at 30% 28%,#fff,#d6d9e4 55%,#7d8194);--planet-glow:#d6d9e4">
+          <div class="card-head"><span class="planet-dot"></span><div><span class="tag">Planet katai</span><h3>Haumea</h3></div></div>
+          <p>Berbentuk lonjong karena rotasinya sangat cepat. Haumea juga diketahui memiliki cincin tipis.</p>
+          <div class="chips"><span class="chip">Sabuk Kuiper</span><span class="chip">rotasi cepat</span></div>
+        </article>
+        <article class="body-card" tabindex="0" data-name="Makemake" data-category="dwarf" data-distance="6847" data-diameter="1430" style="--planet-gradient:radial-gradient(circle at 30% 25%,#ffe1bf,#bc6f42 58%,#61321f);--planet-glow:#d18b5d">
+          <div class="card-head"><span class="planet-dot"></span><div><span class="tag">Planet katai</span><h3>Makemake</h3></div></div>
+          <p>Objek dingin dan jauh di Sabuk Kuiper. Namanya berasal dari dewa pencipta dalam mitologi Rapa Nui.</p>
+          <div class="chips"><span class="chip">Sabuk Kuiper</span><span class="chip">1 bulan diketahui</span></div>
+        </article>
+        <article class="body-card" tabindex="0" data-name="Eris" data-category="dwarf" data-distance="10120" data-diameter="2326" style="--planet-gradient:radial-gradient(circle at 30% 25%,#f8fbff,#b6c6d8 58%,#61758c);--planet-glow:#b6c6d8">
+          <div class="card-head"><span class="planet-dot"></span><div><span class="tag">Planet katai</span><h3>Eris</h3></div></div>
+          <p>Salah satu planet katai paling jauh dan masif. Penemuannya ikut memicu definisi ulang status planet Pluto.</p>
+          <div class="chips"><span class="chip">Objek trans-Neptunus</span><span class="chip">Dysnomia</span></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="wrap" id="bandingkan">
+      <div class="section-head">
+        <div>
+          <h2>Bandingkan ukuran & berat</h2>
+          <p>Grafik memakai diameter rata-rata. Kalkulator berat memakai gravitasi permukaan relatif terhadap Bumi.</p>
+        </div>
+      </div>
+      <div class="compare">
+        <div class="panel">
+          <h3 style="margin-top:0">Grafik diameter planet</h3>
+          <div class="chart" id="diameterChart" aria-label="Grafik batang diameter planet"></div>
+        </div>
+        <div class="panel calc">
+          <h3 style="margin:0">Beratmu di planet lain</h3>
+          <label><span class="tag">Masukkan berat di Bumi (kg)</span><input class="field" id="weightInput" type="number" min="1" max="300" value="50"></label>
+          <label><span class="tag">Pilih planet</span><select class="field" id="gravitySelect"></select></label>
+          <div class="weight-result" id="weightResult">—</div>
+          <p class="sources" id="gravityNote">Berat di planet lain berubah karena gaya gravitasi permukaan berbeda. Massa tubuhmu tetap sama.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap" id="kuis">
+      <div class="section-head">
+        <div>
+          <h2>Kuis mini astronomi</h2>
+          <p>Jawab pertanyaan dan lihat skor langsung. Cocok untuk latihan cepat setelah membaca katalog.</p>
+        </div>
+      </div>
+      <div class="quiz">
+        <div class="panel">
+          <div class="tag" id="quizCount">Pertanyaan 1/6</div>
+          <div class="question" id="questionText">Memuat pertanyaan...</div>
+          <div class="answers" id="answers"></div>
+          <p class="sources" id="quizFeedback"></p>
+          <button class="btn primary" id="nextQuestion" type="button" style="display:none">Pertanyaan berikutnya</button>
+        </div>
+        <div class="panel">
+          <p class="quiz-score" id="scoreText">0</p>
+          <p class="sources">Skor kamu. Setiap jawaban benar menambah 1 poin. Tekan ulang kuis untuk mengulang dari awal.</p>
+          <button class="btn" id="restartQuiz" type="button">Ulangi kuis</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap" id="misi">
+      <div class="section-head">
+        <div>
+          <h2>Rute jelajah cepat</h2>
+          <p>Ikuti urutan ini agar belajar tata surya terasa seperti misi luar angkasa.</p>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="step" data-no="01"><b>Amati orbit</b><span>Klik planet di simulator untuk melihat detailnya.</span></div>
+        <div class="step" data-no="02"><b>Bandingkan ukuran</b><span>Lihat mengapa Jupiter dan Saturnus disebut planet raksasa.</span></div>
+        <div class="step" data-no="03"><b>Cari dunia es</b><span>Filter planet katai seperti Pluto, Haumea, Makemake, dan Eris.</span></div>
+        <div class="step" data-no="04"><b>Uji pemahaman</b><span>Mainkan kuis dan ulangi sampai skormu penuh.</span></div>
+      </div>
+    </section>
+
+    <section class="wrap" id="sumber">
+      <div class="panel sources">
+        <h2 style="margin-top:0">Sumber data</h2>
+        <p>Data ringkas di website ini disusun dari halaman edukasi NASA Solar System Exploration dan rujukan IAU/MPC untuk pembaruan bulan raksasa gas. Jumlah bulan dapat berubah saat objek kecil baru dikonfirmasi.</p>
+        <ul>
+          <li><a href="https://science.nasa.gov/solar-system/" target="_blank" rel="noopener">NASA — Solar System Exploration</a></li>
+          <li><a href="https://science.nasa.gov/solar-system/planets/" target="_blank" rel="noopener">NASA — About the Planets</a></li>
+          <li><a href="https://science.nasa.gov/dwarf-planets/" target="_blank" rel="noopener">NASA — Pluto & Dwarf Planets</a></li>
+          <li><a href="https://science.nasa.gov/jupiter/jupiter-moons/" target="_blank" rel="noopener">NASA — Jupiter Moons</a></li>
+          <li><a href="https://science.nasa.gov/saturn/moons/" target="_blank" rel="noopener">NASA — Saturn Moons</a></li>
+          <li><a href="https://www.iau.org/" target="_blank" rel="noopener">International Astronomical Union</a></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">AstroVerse dibuat sebagai file tunggal <b>index.html</b> untuk GitHub Pages. Tip: simpan file ini sebagai <b>index.html</b>, lalu unggah ke repository GitHub Pages.</div>
+  </footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    'use strict';
+    const planets = [
+      {name:'Matahari', type:'Bintang pusat', category:'star', short:'Sun', diameter:1392700, distance:0, day:'± 27 hari Bumi', year:'—', gravity:27.9, orbit:0, color:'#ffbd37', ring:false, desc:'Matahari adalah bintang di pusat tata surya. Energinya membuat planet-planet tetap hangat dan gravitasinya mengikat seluruh sistem.', fact:'Cahaya Matahari butuh sekitar 8 menit 20 detik untuk sampai ke Bumi.', gradient:'radial-gradient(circle at 32% 28%,#fff7bf,#ffbd37 50%,#df6c10)'},
+      {name:'Merkurius', type:'Planet batuan', category:'planet', short:'Mer', diameter:4879, distance:57.9, day:'58,6 hari Bumi', year:'88 hari Bumi', gravity:.38, orbit:88, color:'#b9b6aa', ring:false, desc:'Planet terkecil dan paling dekat dengan Matahari. Permukaannya penuh kawah dan mengalami perubahan suhu ekstrem.', fact:'Merkurius hampir tidak memiliki atmosfer tebal untuk menahan panas.', gradient:'radial-gradient(circle at 34% 30%,#eee,#8f8b82 68%,#4d4c4a)'},
+      {name:'Venus', type:'Planet batuan', category:'planet', short:'Ven', diameter:12104, distance:108.2, day:'243 hari Bumi', year:'225 hari Bumi', gravity:.91, orbit:225, color:'#eec47d', ring:false, desc:'Venus memiliki atmosfer tebal kaya karbon dioksida sehingga menjadi planet terpanas di tata surya.', fact:'Satu hari Venus lebih lama daripada satu tahun Venus.', gradient:'radial-gradient(circle at 30% 30%,#fff3bf,#d89543 68%,#7a4f22)'},
+      {name:'Bumi', type:'Planet batuan', category:'planet', short:'Bumi', diameter:12742, distance:149.6, day:'23,9 jam', year:'365,25 hari', gravity:1, orbit:365, color:'#49a3ff', ring:false, desc:'Bumi adalah satu-satunya planet yang diketahui memiliki kehidupan, air cair melimpah, dan atmosfer yang mendukung makhluk hidup.', fact:'Sekitar 71% permukaan Bumi tertutup air.', gradient:'radial-gradient(circle at 25% 22%,#eaf7ff,#2f91ff 45%,#1d8f61 58%,#0d2a64)'},
+      {name:'Mars', type:'Planet batuan', category:'planet', short:'Mars', diameter:6779, distance:227.9, day:'24,6 jam', year:'687 hari Bumi', gravity:.38, orbit:687, color:'#e36d45', ring:false, desc:'Mars disebut Planet Merah karena debu oksida besi. Planet ini memiliki lembah besar, gunung raksasa, dan es di kutubnya.', fact:'Olympus Mons di Mars adalah salah satu gunung terbesar di tata surya.', gradient:'radial-gradient(circle at 30% 25%,#ffd0a8,#db6742 58%,#74321f)'},
+      {name:'Jupiter', type:'Raksasa gas', category:'planet', short:'Jup', diameter:139820, distance:778.6, day:'9,9 jam', year:'11,86 tahun Bumi', gravity:2.34, orbit:4333, color:'#d9a56e', ring:false, desc:'Jupiter adalah planet terbesar dengan atmosfer berlapis dan badai raksasa bernama Bintik Merah Besar.', fact:'Ganymede, bulan Jupiter, lebih besar daripada planet Merkurius.', gradient:'linear-gradient(160deg,#f1d6a5,#b67b48 28%,#f6e0b9 38%,#9b5a3a 49%,#e9c792 61%,#7a442e)'},
+      {name:'Saturnus', type:'Raksasa gas', category:'planet', short:'Sat', diameter:116460, distance:1433.5, day:'10,7 jam', year:'29,45 tahun Bumi', gravity:1.06, orbit:10759, color:'#d6be80', ring:true, desc:'Saturnus terkenal dengan cincin es dan batu yang sangat lebar. Sistem bulannya kaya, termasuk Titan dan Enceladus.', fact:'Saturnus memiliki 274 bulan terkonfirmasi menurut NASA Saturn Moons yang dikutip pada halaman sumber.', gradient:'linear-gradient(160deg,#fff0bd,#caa45c 35%,#f1d98d 58%,#8c6f38)'},
+      {name:'Uranus', type:'Raksasa es', category:'planet', short:'Ura', diameter:50724, distance:2872.5, day:'17,2 jam', year:'84 tahun Bumi', gravity:.92, orbit:30687, color:'#8be8ed', ring:false, desc:'Uranus adalah raksasa es dengan poros rotasi sangat miring, membuat musimnya sangat ekstrem.', fact:'Uranus tampak biru-hijau karena metana menyerap cahaya merah.', gradient:'radial-gradient(circle at 30% 25%,#e8ffff,#84e5e9 62%,#2a8494)'},
+      {name:'Neptunus', type:'Raksasa es', category:'planet', short:'Nep', diameter:49244, distance:4495.1, day:'16,1 jam', year:'164,8 tahun Bumi', gravity:1.19, orbit:60190, color:'#4775ff', ring:false, desc:'Neptunus adalah planet resmi terjauh dari Matahari. Atmosfernya memiliki angin sangat cepat dan warna biru pekat.', fact:'Triton, bulan terbesar Neptunus, mengorbit berlawanan arah rotasi planetnya.', gradient:'radial-gradient(circle at 30% 25%,#a9c4ff,#4266ed 58%,#17268a)'},
+      {name:'Ceres', type:'Planet katai', category:'dwarf', short:'Cer', diameter:940, distance:413.7, day:'9 jam', year:'4,6 tahun Bumi', gravity:.029, orbit:1680, color:'#d8d0c6', ring:false, desc:'Ceres adalah planet katai di sabuk asteroid antara Mars dan Jupiter, sekaligus objek terbesar di wilayah itu.', fact:'Area terang di Ceres diduga mengandung garam dari cairan asin masa lalu.', gradient:'radial-gradient(circle at 35% 30%,#f0eadf,#8f877d 63%,#4e4a48)'},
+      {name:'Pluto', type:'Planet katai', category:'dwarf', short:'Plu', diameter:2377, distance:5906.4, day:'6,4 hari Bumi', year:'248 tahun Bumi', gravity:.063, orbit:90560, color:'#caa27f', ring:false, desc:'Pluto adalah dunia es di Sabuk Kuiper dengan permukaan kompleks dan wilayah berbentuk hati.', fact:'Charon sangat besar dibanding Pluto sehingga keduanya seperti sistem ganda.', gradient:'radial-gradient(circle at 30% 25%,#fff0d7,#b98a67 55%,#583e34)'},
+      {name:'Haumea', type:'Planet katai', category:'dwarf', short:'Hau', diameter:1632, distance:6452, day:'3,9 jam', year:'285 tahun Bumi', gravity:.044, orbit:104025, color:'#d6d9e4', ring:true, desc:'Haumea berbentuk lonjong karena rotasinya sangat cepat dan diketahui memiliki cincin tipis.', fact:'Haumea dinamai dari dewi kesuburan dalam mitologi Hawaii.', gradient:'radial-gradient(ellipse at 30% 28%,#fff,#d6d9e4 55%,#7d8194)'},
+      {name:'Makemake', type:'Planet katai', category:'dwarf', short:'Mak', diameter:1430, distance:6847, day:'22,5 jam', year:'305 tahun Bumi', gravity:.05, orbit:111325, color:'#d18b5d', ring:false, desc:'Makemake adalah planet katai dingin di Sabuk Kuiper dan memiliki setidaknya satu bulan yang telah ditemukan.', fact:'Makemake termasuk objek terang di Sabuk Kuiper setelah Pluto.', gradient:'radial-gradient(circle at 30% 25%,#ffe1bf,#bc6f42 58%,#61321f)'},
+      {name:'Eris', type:'Planet katai', category:'dwarf', short:'Eri', diameter:2326, distance:10120, day:'25,9 jam', year:'557 tahun Bumi', gravity:.083, orbit:203450, color:'#b6c6d8', ring:false, desc:'Eris adalah planet katai jauh dan masif. Penemuannya menjadi salah satu alasan definisi planet dibahas ulang.', fact:'Bulan Eris bernama Dysnomia.', gradient:'radial-gradient(circle at 30% 25%,#f8fbff,#b6c6d8 58%,#61758c)'}
+    ];
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+    const fmt = n => Number(n).toLocaleString('id-ID');
+    const toast = msg => { const t=$('#toast'); if(!t) return; t.textContent=msg; t.classList.add('show'); clearTimeout(toast.timer); toast.timer=setTimeout(()=>t.classList.remove('show'),1800); };
+    let soundOn = false, audioCtx;
+    function clickSound(){
+      if(!soundOn) return;
+      try{ audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)(); const osc=audioCtx.createOscillator(); const gain=audioCtx.createGain(); osc.type='sine'; osc.frequency.value=540; gain.gain.setValueAtTime(.05,audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+.16); osc.connect(gain).connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime+.16);}catch(e){}
+    }
+    function setDetail(p){
+      $('#detailName').textContent = p.name;
+      $('#detailType').textContent = p.type;
+      $('#detailDesc').textContent = p.desc;
+      $('#detailDiameter').textContent = fmt(p.diameter) + ' km';
+      $('#detailDistance').textContent = p.distance === 0 ? '0 km' : (p.distance >= 1000 ? (p.distance/1000).toFixed(2).replace('.',',') + ' miliar km' : p.distance.toString().replace('.',',') + ' juta km');
+      $('#detailDay').textContent = p.day;
+      $('#detailYear').textContent = p.year;
+      $('#detailFact').textContent = p.fact;
+      const visual = $('#detailVisual');
+      visual.style.setProperty('--planet-gradient', p.gradient);
+      visual.style.setProperty('--planet-glow', p.color);
+      visual.classList.toggle('ringed', !!p.ring);
+      const max = Math.max(...planets.filter(x=>x.category==='planet').map(x=>x.diameter));
+      $('#detailBar').style.width = Math.max(4, Math.min(100, p.diameter/max*100)) + '%';
+      $$('.body-card').forEach(card => card.style.outline = card.dataset.name === p.name ? '2px solid var(--accent)' : '0');
+      clickSound();
+    }
+    function buildOrbit(){
+      const container = $('#interactiveOrbit');
+      if(!container) return;
+      planets.filter(p=>p.category==='planet').forEach((p, i)=>{
+        const size = 98 + i*48;
+        const speed = Math.max(8, 8 + i*6);
+        const orbit = document.createElement('div');
+        orbit.className = 'orbit live-orbit';
+        orbit.style.setProperty('--size', size+'px');
+        orbit.style.setProperty('--speed', speed+'s');
+        orbit.dataset.name = p.name;
+        const planet = document.createElement('button');
+        planet.type = 'button';
+        planet.className = 'orbiter' + (p.ring ? ' rings' : '');
+        planet.style.setProperty('--p', (p.name==='Jupiter'?28:p.name==='Saturnus'?24:p.name==='Uranus'||p.name==='Neptunus'?19:p.name==='Bumi'||p.name==='Venus'?14:11)+'px');
+        planet.style.setProperty('--c', p.color);
+        planet.dataset.short = p.short;
+        planet.setAttribute('aria-label', 'Lihat '+p.name);
+        planet.addEventListener('click', ev => { ev.stopPropagation(); setDetail(p); toast('Fokus: '+p.name); });
+        orbit.appendChild(planet);
+        container.appendChild(orbit);
+      });
+    }
+    function buildSelects(){
+      const focus = $('#focusSelect'); const gravity = $('#gravitySelect');
+      planets.forEach(p=>{
+        const o = new Option(p.name, p.name); focus.add(o);
+        if(p.category==='planet'){ gravity.add(new Option(p.name, p.name)); }
+      });
+      focus.addEventListener('change', ()=> setDetail(planets.find(p=>p.name===focus.value) || planets[0]));
+      gravity.value = 'Mars';
+    }
+    function updateCards(){
+      const q = ($('#searchInput')?.value || '').trim().toLowerCase();
+      const cat = $('#filterSelect')?.value || 'all';
+      const sort = $('#sortSelect')?.value || 'distance';
+      const grid = $('#cardGrid');
+      const cards = $$('.body-card', grid);
+      const sorted = cards.slice().sort((a,b)=>{
+        if(sort==='name') return a.dataset.name.localeCompare(b.dataset.name,'id');
+        if(sort==='diameter') return (+b.dataset.diameter) - (+a.dataset.diameter);
+        return (+a.dataset.distance) - (+b.dataset.distance);
+      });
+      sorted.forEach(c=>grid.appendChild(c));
+      let shown = 0;
+      $$('.body-card', grid).forEach(card=>{
+        const text = card.textContent.toLowerCase();
+        const okQ = !q || text.includes(q) || card.dataset.name.toLowerCase().includes(q);
+        const okC = cat==='all' || card.dataset.category===cat;
+        card.classList.toggle('hide', !(okQ && okC));
+        if(okQ && okC) shown++;
+      });
+      if(q || cat !== 'all') toast(shown + ' kartu ditemukan');
+    }
+    function setupCards(){
+      $$('.body-card').forEach(card=>{
+        card.addEventListener('click', ()=>{
+          const p = planets.find(x=>x.name === card.dataset.name);
+          if(p){ setDetail(p); location.hash = '#simulator'; }
+        });
+        card.addEventListener('keydown', e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); card.click(); }});
+        card.addEventListener('mousemove', e=>{
+          const r = card.getBoundingClientRect();
+          const x = (e.clientX - r.left) / r.width - .5;
+          const y = (e.clientY - r.top) / r.height - .5;
+          card.style.transform = `translateY(-8px) rotateX(${-y*6}deg) rotateY(${x*8}deg)`;
+        });
+        card.addEventListener('mouseleave', ()=> card.style.transform = '');
+      });
+    }
+    function buildChart(){
+      const chart = $('#diameterChart'); if(!chart) return;
+      chart.innerHTML='';
+      const items = planets.filter(p=>p.category==='planet');
+      const max = Math.max(...items.map(p=>p.diameter));
+      items.forEach(p=>{
+        const el = document.createElement('button');
+        el.type='button'; el.className='bar-planet'; el.title = `${p.name}: ${fmt(p.diameter)} km`;
+        const h = Math.max(18, p.diameter/max*300);
+        el.style.setProperty('--h', h);
+        el.innerHTML = `<span class="vbar"></span><small>${p.name}</small>`;
+        el.addEventListener('click',()=>{ setDetail(p); toast(`${p.name}: ${fmt(p.diameter)} km`); });
+        chart.appendChild(el);
+      });
+    }
+    function updateWeight(){
+      const kg = Math.max(0, parseFloat($('#weightInput').value || '0'));
+      const p = planets.find(x=>x.name === $('#gravitySelect').value) || planets.find(x=>x.name==='Bumi');
+      $('#weightResult').textContent = (kg * p.gravity).toFixed(1).replace('.',',') + ' kgf di ' + p.name;
+      $('#gravityNote').textContent = `Gravitasi permukaan ${p.name} sekitar ${p.gravity}× gravitasi Bumi.`;
+    }
+    const quiz = [
+      {q:'Planet apa yang paling dekat dengan Matahari?', a:['Merkurius','Venus','Mars','Bumi'], c:0, f:'Merkurius adalah planet pertama dari Matahari.'},
+      {q:'Planet apa yang paling besar di tata surya?', a:['Saturnus','Jupiter','Neptunus','Uranus'], c:1, f:'Jupiter memiliki diameter terbesar di antara planet.'},
+      {q:'Apa nama galaksi tempat tata surya berada?', a:['Andromeda','Bima Sakti','Triangulum','Sombrero'], c:1, f:'Tata surya berada di galaksi Bima Sakti.'},
+      {q:'Planet mana yang terkenal dengan cincin paling spektakuler?', a:['Mars','Saturnus','Bumi','Merkurius'], c:1, f:'Saturnus memiliki sistem cincin yang sangat jelas dan kompleks.'},
+      {q:'Ceres berada terutama di wilayah mana?', a:['Sabuk asteroid','Awan Oort','Antara Bumi dan Venus','Pusat Matahari'], c:0, f:'Ceres adalah planet katai terbesar di sabuk asteroid.'},
+      {q:'Planet mana yang disebut Planet Merah?', a:['Venus','Mars','Neptunus','Uranus'], c:1, f:'Mars tampak merah karena oksida besi di permukaannya.'}
+    ];
+    let qi=0, score=0, locked=false;
+    function renderQuiz(){
+      locked=false;
+      const item = quiz[qi];
+      $('#quizCount').textContent = `Pertanyaan ${qi+1}/${quiz.length}`;
+      $('#questionText').textContent = item.q;
+      $('#quizFeedback').textContent = '';
+      $('#nextQuestion').style.display='none';
+      const ans = $('#answers'); ans.innerHTML='';
+      item.a.forEach((text, idx)=>{
+        const btn=document.createElement('button'); btn.type='button'; btn.className='answer'; btn.textContent=text;
+        btn.addEventListener('click',()=>{
+          if(locked) return; locked=true;
+          if(idx===item.c){ score++; btn.classList.add('correct'); $('#quizFeedback').textContent='Benar! '+item.f; clickSound(); }
+          else{ btn.classList.add('wrong'); ans.children[item.c].classList.add('correct'); $('#quizFeedback').textContent='Belum tepat. '+item.f; }
+          $('#scoreText').textContent=score;
+          $('#nextQuestion').style.display='inline-flex';
+          if(qi===quiz.length-1) $('#nextQuestion').textContent='Lihat hasil'; else $('#nextQuestion').textContent='Pertanyaan berikutnya';
+        });
+        ans.appendChild(btn);
+      });
+    }
+    function init(){
+      buildOrbit(); buildSelects(); setupCards(); buildChart(); renderQuiz(); updateWeight(); setDetail(planets[0]);
+      ['input','change'].forEach(ev=>$('#searchInput').addEventListener(ev, updateCards));
+      $('#filterSelect').addEventListener('change', updateCards); $('#sortSelect').addEventListener('change', updateCards);
+      $('#speedRange').addEventListener('input', e=>{
+        const v=parseFloat(e.target.value); $('#speedLabel').textContent=v.toFixed(2).replace('.00','').replace('.',',')+'x';
+        $$('.live-orbit, #heroOrbit .orbit').forEach(o=>{ const base = parseFloat(o.dataset.baseSpeed || getComputedStyle(o).getPropertyValue('--speed')); if(!o.dataset.baseSpeed) o.dataset.baseSpeed = base; o.style.setProperty('--speed', (base / v) + 's'); });
+      });
+      let paused=false; $('#pauseBtn').addEventListener('click',()=>{ paused=!paused; $$('.orbit').forEach(o=>o.classList.toggle('paused', paused)); $('#pauseBtn').textContent=paused?'Lanjut orbit':'Jeda orbit'; toast(paused?'Orbit dijeda':'Orbit berjalan'); });
+      $('#randomBtn').addEventListener('click',()=>{ const pool=planets.filter(p=>p.category!=='star'); const p=pool[Math.floor(Math.random()*pool.length)]; setDetail(p); $('#focusSelect').value=p.name; toast('Objek acak: '+p.name); });
+      $('#soundBtn').addEventListener('click', e=>{ soundOn=!soundOn; e.currentTarget.setAttribute('aria-pressed', String(soundOn)); e.currentTarget.textContent=soundOn?'Suara aktif':'Suara klik'; toast(soundOn?'Suara klik aktif':'Suara klik nonaktif'); clickSound(); });
+      $('#themeBtn').addEventListener('click',()=>{ const order=['cosmic','nebula','solar']; const cur=document.body.dataset.theme || 'cosmic'; const next=order[(order.indexOf(cur)+1)%order.length]; document.body.dataset.theme=next; $('#themeBtn').textContent = next==='nebula'?'Mode Solar':next==='solar'?'Mode Cosmic':'Mode Nebula'; localStorage.setItem('astro-theme',next); });
+      const saved=localStorage.getItem('astro-theme'); if(saved){ document.body.dataset.theme=saved; $('#themeBtn').textContent = saved==='nebula'?'Mode Solar':saved==='solar'?'Mode Cosmic':'Mode Nebula'; }
+      $('#gravitySelect').addEventListener('change', updateWeight); $('#weightInput').addEventListener('input', updateWeight);
+      $('#nextQuestion').addEventListener('click',()=>{ if(qi < quiz.length-1){ qi++; renderQuiz(); } else { $('#quizFeedback').textContent=`Selesai! Skor kamu ${score}/${quiz.length}.`; $('#nextQuestion').style.display='none'; }});
+      $('#restartQuiz').addEventListener('click',()=>{ qi=0; score=0; $('#scoreText').textContent=0; renderQuiz(); toast('Kuis diulang'); });
+      setTimeout(()=>$$('[data-count]').forEach(el=>{ const target=parseInt(el.dataset.count,10); if(target>100){ let n=0; const step=Math.ceil(target/36); const tick=()=>{ n=Math.min(target,n+step); el.textContent = target===4600 ? (n/1000).toFixed(1).replace('.',',')+'M' : n+'+'; if(n<target) requestAnimationFrame(tick); }; tick(); } }),350);
+    }
+    try{ init(); }catch(err){ console.error(err); const warn=document.createElement('div'); warn.className='wrap no-js'; warn.textContent='JavaScript interaktif gagal dimuat, tetapi konten utama tetap tersedia. Coba refresh halaman atau gunakan browser terbaru.'; document.body.prepend(warn); }
+  </script>
+</body>
+</html>
